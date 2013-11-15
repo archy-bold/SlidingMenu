@@ -872,6 +872,24 @@ public class SlidingMenu extends RelativeLayout {
 	public void clearIgnoredViews() {
 		mViewAbove.clearIgnoredViews();
 	}
+	
+	/**
+	 * Set this SlidingMenu to consider certain views first when intercepting touch events.
+	 * 
+	 * @param considerate
+	 */
+	public void setConsiderate(boolean considerate){
+		mViewAbove.setConsiderate(considerate);
+	}
+	
+	/**
+	 * Add a consideration to ignore interceptions
+	 * 
+	 * @param id the ID of the view to consider
+	 */
+	public void addConsiderationView(int id){
+		mViewAbove.addConsiderationView(id);
+	}
 
 	/**
 	 * Sets the OnOpenListener. {@link OnOpenListener#onOpen() OnOpenListener.onOpen()} will be called when the SlidingMenu is opened
