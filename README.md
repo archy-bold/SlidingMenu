@@ -147,6 +147,12 @@ Developed By
 ------------
 * Jeremy Feinstein
 
+Additions
+------------
+* Simon Archer
+* Made touch event interceptions more considerate by adding the ability to add exceptions through the 
+`addConsiderations` method
+
 License
 -------
 
