@@ -3,6 +3,7 @@ package com.jeremyfeinstein.slidingmenu.lib;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -12,6 +13,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewConfigurationCompat;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.FloatMath;
 import android.util.Log;
@@ -185,6 +187,9 @@ public class CustomViewAbove extends ViewGroup {
 
 		final float density = context.getResources().getDisplayMetrics().density;
 		mFlingDistance = (int) (MIN_DISTANCE_FOR_FLING * density);
+		
+		mConsiderate = false;
+		mConsiderations = new ArrayList<Integer>();
 	}
 
 	/**
@@ -571,6 +576,14 @@ public class CustomViewAbove extends ViewGroup {
 	public int getTouchMode() {
 		return mTouchMode;
 	}
+	
+	public void addConsiderationView(int id){
+		mConsiderations.add(id);
+	}
+	
+	public void setConsiderate(boolean considerate){
+		mConsiderate = true;
+	}
 
 	private boolean thisTouchAllowed(MotionEvent ev) {
 		int x = (int) (ev.getX() + mScrollX);
@@ -612,6 +625,10 @@ public class CustomViewAbove extends ViewGroup {
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		
+		if (mConsiderate && onInterceptTouchEventConsiderate(ev)){
+			return false;
+		}
 
 		if (!mEnabled)
 			return false;
@@ -661,6 +678,58 @@ public class CustomViewAbove extends ViewGroup {
 			mVelocityTracker.addMovement(ev);
 		}
 		return mIsBeingDragged || mQuickReturn;
+	}
+	
+	/**
+	 * Be considerate of child elements with 
+	 */
+	private boolean mConsiderate;
+	
+	// A list of all IDs we should be considering
+	private ArrayList<Integer> mConsiderations;
+
+	private boolean onInterceptTouchEventConsiderate(MotionEvent ev) {
+		// Override in special case eg ViewPagers.
+		Context context = getContext();
+		if (context instanceof Activity){
+			Log.d(TAG, "we've got the Activity");
+			Activity activity = (Activity) context;
+			
+			// We need to loop through each child of the activity.
+			// If we come across anything from the mConsiderations list, don't intercept.
+			for (int i = 0; i < mConsiderations.size(); i++) {
+				int id = mConsiderations.get(i);
+				View view = activity.findViewById(id);
+				if (view != null && isPointInsideView(ev.getRawX(), ev.getRawY(), view)){
+					// Special circumstance, if it's a ViewPager, only return true on a page > 0.
+					if (view instanceof ViewPager){
+						ViewPager vp = (ViewPager) view;
+						return vp.getCurrentItem() > 0;
+					}
+					else{
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	private boolean isPointInsideView(float x, float y, View view){
+	    int location[] = new int[2];
+	    view.getLocationOnScreen(location);
+	    int viewX = location[0];
+	    int viewY = location[1];
+
+	    //point is inside view bounds
+	    if(( x > viewX && x < (viewX + view.getWidth())) &&
+	            ( y > viewY && y < (viewY + view.getHeight()))){
+	        return true;
+	    }
+	    else {
+	        return false;
+	    }
 	}
 
 
